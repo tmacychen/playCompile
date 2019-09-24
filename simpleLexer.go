@@ -1,6 +1,8 @@
 package main
 
 import (
+	"container/list"
+	"fmt"
 	"log"
 	"strings"
 	"unicode"
@@ -84,7 +86,20 @@ func (t Token) GetType() string {
 var token = Token{}
 
 type Lexer struct {
-	tokens []Token //保存已解析出来的token
+	tokens *list.List //保存已解析出来的token
+}
+
+//create a Lexer
+func NewLexer() *Lexer {
+	l := &Lexer{tokens: list.New()}
+	return l
+}
+
+func (l *Lexer) DumpLexer() {
+	for e := l.tokens.Front(); e != nil; e = e.Next() {
+		fmt.Printf("%v :%v\n",
+			e.Value.(Token).GetType(), e.Value.(Token).v)
+	}
 }
 
 //
@@ -95,6 +110,7 @@ var tokenText strings.Builder
 // 解析传入字符串为各种标记
 func (l *Lexer) tokenize(s string) {
 	state := Initial
+	l.tokens.Init()
 	var ch rune
 	for _, ch = range []rune(s) {
 		switch state {
@@ -164,7 +180,7 @@ func (l *Lexer) tokenize(s string) {
 	if tokenText.Len() > 0 {
 		// initToken(ch) 会存在保留上一个token的bug，token与tokenText是全局变量
 		token.v = tokenText.String()
-		l.tokens = append(l.tokens, token)
+		l.tokens.PushFront(token)
 		//创建新的临时区域解析标记
 		tokenText.Reset()
 	}
@@ -180,7 +196,7 @@ func (l *Lexer) initToken(ch rune) DfaState {
 	//如果lexer的临时文本区域有内容，就保存到已解析的token组里
 	if tokenText.Len() > 0 {
 		token.v = tokenText.String()
-		l.tokens = append(l.tokens, token)
+		l.tokens.PushFront(token)
 
 		//创建新的临时区域解析标记
 		tokenText.Reset()
