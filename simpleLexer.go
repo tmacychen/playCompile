@@ -102,7 +102,16 @@ func (l *Lexer) DumpLexer() {
 	}
 }
 
-//
+// 加入list时是从前端进入，最开始的token在列表的最后
+func (l *Lexer) GetPeekTocken() Token {
+	t := l.tokens.Back().Value.(Token)
+	return t
+}
+func (l *Lexer) PopToken() Token {
+	t := l.tokens.Back()
+	l.tokens.Remove(t)
+	return t.Value.(Token)
+}
 
 var tokenText strings.Builder
 

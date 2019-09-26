@@ -18,3 +18,12 @@ func Test_simpleLexer(t *testing.T) {
 	l.tokenize("2 + 3 = 5")
 	l.DumpLexer()
 }
+func Test_GetPeekToken(t *testing.T) {
+	l := NewLexer()
+	l.tokenize("int a = 10")
+	fmt.Printf("GetPeekTocken :%v == int\n", l.GetPeekTocken().v)
+	a := l.PopToken()
+	fmt.Printf("pop token should be (int) :%v\n", a.v)
+	fmt.Printf("Now GetPeekTocken should be a :%v\n", l.GetPeekTocken().v)
+
+}
