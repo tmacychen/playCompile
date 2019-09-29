@@ -82,6 +82,9 @@ func (t Token) GetType() string {
 	}
 	return ""
 }
+func (t Token) GetValue() string {
+	return t.v
+}
 
 var token = Token{}
 

@@ -9,6 +9,6 @@ simpleLexer: simpleLexer.go simpleLexer_test.go
 #	go test -v $^
 	${GO_TEST} 
 
-simpleCalculator: simpleCalculator.go simpleCalculator_test.go
-	${GO_TEST} $^
+simpleCalculator: simpleCalculator.go simpleCalculator_test.go simpleLexer.go
+	${GO_TEST}
 
