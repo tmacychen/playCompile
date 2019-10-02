@@ -1,33 +1,8 @@
 package main
 
 import (
-	"container/list"
 	"fmt"
 )
-
-type List struct {
-	cells []interface{}
-}
-
-func NewList() *List {
-	return &List{}
-}
-
-func (l *List) Add(a interface{}) {
-	l.cells = append(l.cells, a)
-}
-func (l *List) Get(p int) interface{} {
-	if p >= len(l.cells) {
-		return nil
-	}
-	return l.cells[p]
-}
-
-func (l *List) Pop() interface{} {
-	r := l.cells[len(l.cells)-1]
-	l.cells = l.cells[0 : len(l.cells)-1]
-	return r
-}
 
 type ASTNode struct {
 	parent    *ASTNode
@@ -44,9 +19,11 @@ func NewNode(t string, v string) *ASTNode {
 	}
 }
 
-func (node *ASTNode) AddChild(c *ASTNode) {
+//return children
+func (node *ASTNode) AddChild(c *ASTNode) *ASTNode {
 	node.children.Add(c)
 	c.parent = node
+	return c
 }
 
 func (node *ASTNode) GetParent() *ASTNode {
@@ -64,18 +41,21 @@ func (node *ASTNode) GetValue() string {
 	return node.value
 }
 
-func (node *ASTNode) DumpNode() {
-	fmt.Printf("%v\n%v\n%v\n%v\n", node.GetParent(), node.GetType(), node.GetValue(), node.GetChildren())
+func (node *ASTNode) DumpNode(indent string) {
+	fmt.Printf("%v%v\n,%v\n", indent, node.GetType(), node.GetValue())
+	for i, v := range node.GetChildren().GetCells() {
+		v.(*ASTNode).DumpNode(indent + "\t")
+	}
 }
 
-func Parse(script string) *ASTNode {
+func parse(script string) *ASTNode {
 	lexer := NewLexer()
 	lexer.tokenize(script)
 	return astRoot(lexer)
 }
 func astRoot(l *Lexer) *ASTNode {
 	root := NewNode("Program", "Calculator")
-	child := additive(l.tokens)
+	child := additive(l)
 	if child != nil {
 		root.AddChild(child)
 	}
@@ -83,15 +63,58 @@ func astRoot(l *Lexer) *ASTNode {
 }
 
 //TODO
-func additive(tokens *list.List) *ASTNode {
-	return nil
+func additive(l *Lexer) *ASTNode {
+	node1 := multiplicative(l)
+	t := l.GetPeekToken()
+	if t != nil && node1 != nil {
+		if t.GetType() == "Plus" || t.GetType() == "Minus" {
+			token := l.Read()
+			c := NewNode("Additive", t.GetValue())
+			node1.AddChild(c)
+
+		}
+	}
+	return node
 }
 
 //TODO
-func multiplicative(tokens *list.List) *ASTNode {
+func multiplicative(l *Lexer) *ASTNode {
 	return nil
 }
 
-func evaluate(node *ASTNode, ident string) (res int) {
+func Evaluate(script string) {
+	tree := parse(script)
+	DumpNode(tree)
 	return
+}
+
+func intDeclare(l *Lexer) (root *ASTNode) {
+	var n, c *ASTNode
+	t := l.GetPeekToken() // 预读
+	//匹配到int
+	if t != nil && t.getType() == "IntToken" {
+		t = l.PopToken() //消耗标识
+		n = NewNode("IntToken", t.GetValue())
+		root = n
+
+		t = l.GetPeekToken()
+		//获取一个标识符
+		if t != nil && t.GetType() == "Indentifier" {
+			t = l.PopToken()
+			c = NewNode("Indentifier", t.GetValue())
+			n = n.AddChild(c) //加入一个字节点，返回字节点给n，继续向字节点增加节点
+
+			t = l.GetPeekToken()
+			if t != nil && t.GetType() == "ASSIGNMENT" {
+				t = l.PopToken()
+				c = NewNode("ASSIGNMENT", t.GetValue())
+				n = n.AddChild(c)
+				child := additive(l)
+				if child != nil {
+					n.AddChild(child)
+				}
+
+			}
+		}
+	}
 }
