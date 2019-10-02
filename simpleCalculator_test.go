@@ -40,8 +40,13 @@ func Test_ASTNode(t *testing.T) {
 	t.Logf("node2's children :%v\n", node2.GetChildren().cells)
 	t.Logf("node3's parent':%v\n", node3.GetParent().GetValue())
 }
+func Test_intDeclare(t *testing.T) {
+	l := NewLexer().tokens("int a = 1")
+	a := intDeclare(l)
+	a.DumpNode()
+}
 
-func Test_Parse(t *testing.T) {
-	p := Parse("int a = 10")
+func Test_Evaluate(t *testing.T) {
+	p := Evaluate("1 + 1 = 2")
 	p.DumpNode()
 }

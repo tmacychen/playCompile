@@ -5,7 +5,7 @@ GO_TEST=go test -v $^
 all: ${SRC} ${TEST}
 	go test -v .
 
-simpleLexer: simpleLexer.go simpleLexer_test.go
+simpleLexer: simpleLexer.go simpleLexer_test.go list.go
 #	go test -v $^
 	${GO_TEST} 
 

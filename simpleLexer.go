@@ -1,7 +1,6 @@
 package main
 
 import (
-	"container/list"
 	"fmt"
 	"log"
 	"strings"
@@ -89,31 +88,34 @@ func (t Token) GetValue() string {
 var token = Token{}
 
 type Lexer struct {
-	tokens *list.List //保存已解析出来的token
+	tokens *List //保存已解析出来的token
 }
 
-//create a Lexer
+//NewLexer create a Lexer
 func NewLexer() *Lexer {
-	l := &Lexer{tokens: list.New()}
+	l := &Lexer{tokens: NewList()}
 	return l
 }
 
 func (l *Lexer) DumpLexer() {
-	for e := l.tokens.Front(); e != nil; e = e.Next() {
-		fmt.Printf("%v :%v\n",
-			e.Value.(Token).GetType(), e.Value.(Token).v)
+	for _, v := range l.tokens.GetCells() {
+		fmt.Printf("%v,%v\n", v.(Token).GetType(), v.(Token).GetValue())
 	}
 }
 
 // 加入list时是从前端进入，最开始的token在列表的最后
-func (l *Lexer) GetPeekTocken() Token {
-	t := l.tokens.Back().Value.(Token)
-	return t
+func (l *Lexer) GetPeekToken() Token {
+	return l.tokens.Get(l.tokens.GetPos()).(Token)
 }
-func (l *Lexer) PopToken() Token {
-	t := l.tokens.Back()
-	l.tokens.Remove(t)
-	return t.Value.(Token)
+
+//读取字符
+func (l *Lexer) Read() Token {
+	return l.tokens.Read().(Token)
+}
+
+//Unread 回溯字符
+func (l *Lexer) UnRead() Token {
+	return l.tokens.Unread().(Token)
 }
 
 var tokenText strings.Builder
@@ -122,7 +124,6 @@ var tokenText strings.Builder
 // 解析传入字符串为各种标记
 func (l *Lexer) tokenize(s string) {
 	state := Initial
-	l.tokens.Init()
 	var ch rune
 	for _, ch = range []rune(s) {
 		switch state {
@@ -192,7 +193,7 @@ func (l *Lexer) tokenize(s string) {
 	if tokenText.Len() > 0 {
 		// initToken(ch) 会存在保留上一个token的bug，token与tokenText是全局变量
 		token.v = tokenText.String()
-		l.tokens.PushFront(token)
+		l.tokens.Add(token)
 		//创建新的临时区域解析标记
 		tokenText.Reset()
 	}
@@ -208,7 +209,7 @@ func (l *Lexer) initToken(ch rune) DfaState {
 	//如果lexer的临时文本区域有内容，就保存到已解析的token组里
 	if tokenText.Len() > 0 {
 		token.v = tokenText.String()
-		l.tokens.PushFront(token)
+		l.tokens.Add(token)
 
 		//创建新的临时区域解析标记
 		tokenText.Reset()
