@@ -1,4 +1,4 @@
-package main
+package playcompile
 
 type List struct {
 	cells []interface{}

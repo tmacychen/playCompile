@@ -1,4 +1,4 @@
-package main
+package playcompile
 
 import (
 	"errors"
@@ -36,6 +36,7 @@ type tokenType int32
 const (
 	Indentifier tokenType = iota
 	IntToken
+	IntKey
 	GT
 	GE
 	PLUS
@@ -58,6 +59,8 @@ func (t Token) GetType() string {
 	switch t.t {
 	case Indentifier:
 		return "Indentifier"
+	case IntKey:
+		return "IntKey"
 	case IntToken:
 		return "IntToken"
 	case GT:
@@ -105,10 +108,12 @@ func (l *Lexer) DumpLexer() {
 }
 
 func (l *Lexer) GetPeekToken() (Token, error) {
-	if l.tokens.GetPos() < 0 {
-		return Token{}, errors.New("pos error")
+	if l.tokens.GetPos() >= 0 {
+		if t := l.tokens.Get(l.tokens.GetPos()); t != nil {
+			return t.(Token), nil
+		}
 	}
-	return l.tokens.Get(l.tokens.GetPos()).(Token), nil
+	return Token{}, errors.New("pos error")
 }
 
 func (l *Lexer) GetTokens() *List {
@@ -133,9 +138,11 @@ func (l *Lexer) tokenize(s string) {
 	state := Initial
 	var ch rune
 	for _, ch = range []rune(s) {
+		//log.Printf("read ch :%c\n", ch)
 		switch state {
 		case Initial:
 			state = l.initToken(ch)
+		//	log.Printf("initToken read ch :%c\n", ch)
 		case Id:
 			if isAlpha(ch) || isDigit(ch) {
 				tokenText.WriteRune(ch)
@@ -171,7 +178,9 @@ func (l *Lexer) tokenize(s string) {
 			}
 		case Id_int3:
 			if isBlank(ch) {
-				l.initToken(ch)
+				//设置token类型为IntToken
+				token.t = IntKey
+				state = l.initToken(ch)
 			} else {
 				state = Id
 				tokenText.WriteRune(ch)
@@ -220,6 +229,7 @@ func (l *Lexer) initToken(ch rune) DfaState {
 
 		//创建新的临时区域解析标记
 		tokenText.Reset()
+		//		token.t, token.v = Indentifier, ""
 	}
 
 	//设定初始状态

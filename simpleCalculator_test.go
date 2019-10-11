@@ -1,18 +1,31 @@
-package main
+package playcompile
 
-import "testing"
+import (
+	"log"
+	"testing"
+)
 
-func Test_ASTNode(t *testing.T) {
-}
+//func Test_ASTNode(t *testing.T) {
+//}
+//func Test_intDeclare(t *testing.T) {
+//}
 func Test_intDeclare(t *testing.T) {
-}
-func Test_intDeclare(t *testing.T) {
-	l := NewLexer().tokens("int a = 1")
+	l := NewLexer()
+	l.tokenize("int a = 10 + 1")
+	l.DumpLexer()
 	a := intDeclare(l)
-	a.DumpNode()
+	if a != nil {
+		a.DumpNode("")
+	} else {
+		log.Fatalln("a is nil")
+	}
 }
 
 func Test_Evaluate(t *testing.T) {
-	p := Evaluate("1 + 1 = 2")
-	p.DumpNode()
+	log.Println("1-3+2")
+	Evaluate("1-3+2")
+	log.Println("1*3+2")
+	Evaluate("1*3+2")
+	log.Println("1-3*2")
+	Evaluate("1-3*2")
 }
